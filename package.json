@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "babel-core": "^6.26.3",
+    "babelify": "^8.0.0",
+    "budo": "^11.6.2",
+    "ctx-camera": "github:tmpvar/ctx-camera",
+    "ctx-translate-center": "^1.0.0",
+    "fc": "^1.5.2",
+    "ndarray": "^1.0.18",
+    "serialport": "^7.1.4",
+    "skateboard": "^2.0.1",
+    "split2": "^3.1.1",
+    "through2": "^3.0.1"
+  }
+}
