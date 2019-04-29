@@ -11,7 +11,8 @@ const grblSP = new SerialPort('COM4', { baudRate: 9600 }, (err) => {
 
   console.log("connected to grbl")
 })
-const sensorSP = new SerialPort('COM5', { baudRate: 115200 }, (err) => {
+
+const sensorSP = new SerialPort('COM3', { baudRate: 115200 }, (err) => {
   if (err) {
     console.log(err.message)
     process.exit(1)
@@ -20,7 +21,9 @@ const sensorSP = new SerialPort('COM5', { baudRate: 115200 }, (err) => {
 })
 
 const sensorSPread = sensorSP.pipe(split())
-const grblSPread = sensorSP.pipe(split())
+const grblSPread = grblSP.pipe(split())
+
+
 async function readSensor(){
   var value = new Promise((resolve,reject)=>{
     sensorSPread.once("data",function(dBuffer){
@@ -49,19 +52,20 @@ function epsCmp(a, b) {
 async function waitForMachineMove(o) {
   const ret = new Promise((resolve, reject) => {
     const ticker = setInterval(() => {
-      grblSP.write("?")
-    }, 250)
+      grblSP.write("?\n")
+    }, 500)
 
     var handler = through((buf, enc, done) => {
       const str = String(buf)
-      if (str === "ok") {
+
+      if (str.trim() === "" || str === "ok") {
         return done()
       }
 
       //<Alarm,MPos:0.000,0.000,0.000,WPos:199.000,199.000,0.999>
-      const matches = str.match(/MPos:(.+),WPos/)
+      const matches = str.match(/MPos:.+,WPos:(.+)>/)
       if (matches) {
-        const parts = matches.split(',').map(parseFloat)
+        const parts = matches[1].split(',').map(parseFloat)
 
         if (
           epsCmp(parts[0], o.coords.x) &&
@@ -73,6 +77,7 @@ async function waitForMachineMove(o) {
           resolve(true)
         }
       }
+      done()
     })
     grblSPread.pipe(handler)
   })
@@ -81,19 +86,22 @@ async function waitForMachineMove(o) {
 }
 
 async function moveMachine(o){
-  sensorSP.write(o.gcode)
+  grblSP.write(o.gcode + '\n')
+  if (!o.machineWait) {
+    return Promise.resolve(true)
+  }
   return waitForMachineMove(o)
 }
 
 setTimeout(async function () {
 
-  gcodeLines.forEach(async function(o) {
+  for await (let o of gcodeLines) {
     await moveMachine(o)
 
     if (o.readSensor) {
       var sensorOutputObj = await readSensor()
       console.log(Object.assign(sensorOutputObj, o.coords))
     }
-  })
+  }
 
-}, 2000);
+}, 4000);

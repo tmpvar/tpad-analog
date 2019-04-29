@@ -12,7 +12,7 @@ var G1 = function(x, y, z, readSensor, skipMachineWait) {
 
   var str = 'G1 ' + Object.keys(coords).map(function(a) {
     return a.toUpperCase() + Number(coords[a]).toFixed(3);
-  }).join(" ") + "\r\n";
+  }).join(" ");
 
   gcode.push({
     coords: coords,
