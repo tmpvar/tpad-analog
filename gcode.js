@@ -2,24 +2,37 @@
 var gcode = module.exports = [];
 
 const safeZ = 5
+const workOffset = { x: 0, y: 0, z: 0 }
 const extents = {x: 40, y: 40, z: 1}
 const stepSize = {x:5, y:5, z: 0.1}
 const stepDir = {x:1, y:1, z:-2}
 
-var G1 = function(x, y, z, readSensor) {
+var G1 = function(x, y, z, readSensor, skipMachineWait) {
   const coords = { x, y, z }
-
 
   var str = 'G1 ' + Object.keys(coords).map(function(a) {
     return a.toUpperCase() + Number(coords[a]).toFixed(3);
-  }).join(" ");
+  }).join(" ") + "\r\n";
 
   gcode.push({
     coords: coords,
     readSensor: readSensor,
-    gcode: str
+    gcode: str,
+    machineWait: !skipMachineWait
   })
 };
+
+// Home
+gcode.push({ gcode: '$H' })
+
+// Setup absolute coords
+gcode.push({ gcode: 'G21' })
+
+// Move to known offset
+G1(workOffset.x,  workOffset.y, workOffset.z, false, true)
+
+// Setup Machine Coords
+gcode.push({ gcode: 'G10 L20 P1 X0 Y0 Z0' })
 
 for (var x = 0; x < extents.x; x+=stepSize.x) {
   for (var y = 0; y < extents.y; y+=stepSize.y) {
@@ -57,6 +70,9 @@ for (var x = 0; x < extents.x; x+=stepSize.x) {
     )
   }
 }
+
+// Home
+gcode.push({ gcode: '$H' })
 
 if (!module.parent) {
   console.log(gcode.map((o) => o.gcode).join("\n"))
