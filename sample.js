@@ -2,8 +2,10 @@ const SerialPort = require('serialport')
 const split = require('split2')
 const gcodeLines = require('./gcode')
 const through = require('through2')
+const fs = require('fs')
+const path = require('path')
 
-const grblSP = new SerialPort('COM4', { baudRate: 9600 }, (err) => {
+const grblSP = new SerialPort('/dev/tty.usbmodem1411', { baudRate: 115200 }, (err) => {
   if (err) {
     console.log(err.message)
     process.exit(1)
@@ -12,7 +14,7 @@ const grblSP = new SerialPort('COM4', { baudRate: 9600 }, (err) => {
   console.log("connected to grbl")
 })
 
-const sensorSP = new SerialPort('COM3', { baudRate: 115200 }, (err) => {
+const sensorSP = new SerialPort('/dev/tty.usbmodem1421', { baudRate: 115200 }, (err) => {
   if (err) {
     console.log(err.message)
     process.exit(1)
@@ -20,9 +22,14 @@ const sensorSP = new SerialPort('COM3', { baudRate: 115200 }, (err) => {
   console.log("connected to load cell sensor")
 })
 
+const outStream = fs.createWriteStream(path.join(process.cwd(), 'out.ndjson'))
+
+function log(obj) {
+  outStream.write(JSON.stringify(obj, null, 0) + '\n')
+}
+
 const sensorSPread = sensorSP.pipe(split())
 const grblSPread = grblSP.pipe(split())
-
 
 async function readSensor(){
   var value = new Promise((resolve,reject)=>{
@@ -63,10 +70,10 @@ async function waitForMachineMove(o) {
       }
 
       //<Alarm,MPos:0.000,0.000,0.000,WPos:199.000,199.000,0.999>
-      const matches = str.match(/MPos:.+,WPos:(.+)>/)
+      const matches = str.match(/\|WPos:([-\d\.,]+)\|/)
       if (matches) {
         const parts = matches[1].split(',').map(parseFloat)
-
+        console.log(parts.join(", "))
         if (
           epsCmp(parts[0], o.coords.x) &&
           epsCmp(parts[1], o.coords.y) &&
@@ -100,7 +107,9 @@ setTimeout(async function () {
 
     if (o.readSensor) {
       var sensorOutputObj = await readSensor()
-      console.log(Object.assign(sensorOutputObj, o.coords))
+      var out = Object.assign(sensorOutputObj, o.coords)
+      console.log(out)
+      log(out)
     }
   }
 

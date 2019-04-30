@@ -2,10 +2,10 @@
 var gcode = module.exports = [];
 
 const safeZ = 5
-const workOffset = { x: 0, y: 0, z: 0 }
+const workOffset = { x: 185, y: 63, z: -37 }
 const extents = {x: 40, y: 40, z: 1}
 const stepSize = {x:5, y:5, z: 0.1}
-const stepDir = {x:1, y:1, z:-2}
+const stepDir = {x:1, y:1, z:-1}
 
 var G1 = function(x, y, z, readSensor, skipMachineWait) {
   const coords = { x, y, z }
@@ -22,17 +22,25 @@ var G1 = function(x, y, z, readSensor, skipMachineWait) {
   })
 };
 
+// Report WPos
+gcode.push({ gcode: '$10=0' })
+
 // Home
 gcode.push({ gcode: '$H' })
 
 // Setup absolute coords
-gcode.push({ gcode: 'G21' })
+gcode.push({ gcode: 'G21 G90' })
+gcode.push({ gcode: 'G1 F800' })
+
+// Setup Machine Coords (initial)
+gcode.push({ gcode: 'G10 L20 P1 X0 Y0 Z0' })
 
 // Move to known offset
+G1(workOffset.x,  workOffset.y, 0, false, true)
 G1(workOffset.x,  workOffset.y, workOffset.z, false, true)
 
-// Setup Machine Coords
-gcode.push({ gcode: 'G10 L20 P1 X0 Y0 Z0' })
+// Setup Machine Coords (work offset)
+gcode.push({ gcode: 'G10 L20 P1 X0 Y0 Z5' })
 
 for (var x = 0; x < extents.x; x+=stepSize.x) {
   for (var y = 0; y < extents.y; y+=stepSize.y) {
