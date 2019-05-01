@@ -73,7 +73,6 @@ async function waitForMachineMove(o) {
       const matches = str.match(/\|WPos:([-\d\.,]+)\|/)
       if (matches) {
         const parts = matches[1].split(',').map(parseFloat)
-        console.log(parts.join(", "))
         if (
           epsCmp(parts[0], o.coords.x) &&
           epsCmp(parts[1], o.coords.y) &&
@@ -108,7 +107,7 @@ setTimeout(async function () {
     if (o.readSensor) {
       var sensorOutputObj = await readSensor()
       var out = Object.assign(sensorOutputObj, o.coords)
-      console.log(out)
+      console.log(JSON.stringify(out))
       log(out)
     }
   }
