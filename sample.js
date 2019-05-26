@@ -22,7 +22,7 @@ const sensorSP = new SerialPort('/dev/tty.usbmodem1421', { baudRate: 115200 }, (
   console.log("connected to load cell sensor")
 })
 
-const outStream = fs.createWriteStream(path.join(process.cwd(), 'out.ndjson'))
+const outStream = fs.createWriteStream(path.join(process.cwd(), 'out-single-channel.ndjson'))
 
 function log(obj) {
   outStream.write(JSON.stringify(obj, null, 0) + '\n')
@@ -39,8 +39,8 @@ async function readSensor(){
       })
       var sensorData = {
         left:parts[0],
-        right:parts[1],
-        load:parts[2]
+        right:0,
+        load:parts[1]
       }
 
       resolve(sensorData)

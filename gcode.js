@@ -2,9 +2,9 @@
 var gcode = module.exports = [];
 
 const safeZ = 5
-const workOffset = { x: 175, y: 101, z: -49 }
+const workOffset = { x: 176, y: 101, z: -50 }
 const extents = {x: 40, y: 40, z: 1.5}
-const stepSize = {x:1, y:1, z: 0.05}
+const stepSize = {x:1, y:1, z: 0.1}
 const stepDir = {x:1, y:1, z:-1}
 
 var G1 = function(x, y, z, readSensor, skipMachineWait) {

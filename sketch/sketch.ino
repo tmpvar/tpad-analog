@@ -46,12 +46,9 @@ void loop() {
     int b = Serial.read();
     if (b == '\n') {
       int a = analogRead(A0);
-      int b = analogRead(A1);
-      float load = scale.get_units(10);
+      float load = scale.get_units(1);
 
       Serial.print(a);
-      Serial.print(",");
-      Serial.print(b);
       Serial.print(",");
       Serial.println(load);
     }
